@@ -19,7 +19,7 @@ public class JwtTokenProvider {
     public JwtTokenProvider(){
         try{
             // Generate a new secretkey in HMSC
-            KeyGenerator keyGenerator = KeyGenerator.getInstance("HmacSHA156");
+            KeyGenerator keyGenerator = KeyGenerator.getInstance("HmacSHA256");
             keyGenerator.init(256);
             this.secretKey = keyGenerator.generateKey();
         } catch(Exception e){
