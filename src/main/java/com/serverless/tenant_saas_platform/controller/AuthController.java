@@ -30,7 +30,7 @@ public class AuthController {
                     || userDTO.getPassword() == null || userDTO.getPassword().isEmpty()) {
                 return ResponseEntity.badRequest().body("All fields are required");
             }
-            userService.registerUser(userDTO.getEmail(), userDTO.getPassword());
+            userService.registerUser(userDTO.getEmail(),userDTO.getUsername(), userDTO.getPassword(), userDTO.getRoleType());
             return ResponseEntity.ok("User registered successfully!!");
         } catch (RuntimeException ex) {
             return ResponseEntity.status(HttpStatus.CONFLICT).body(ex.getMessage());
@@ -48,6 +48,8 @@ public class AuthController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid Username or Password");
         }
     }
+
+
 
 //    @Autowired
 //    private JwtTokenProvider tokenProvider;

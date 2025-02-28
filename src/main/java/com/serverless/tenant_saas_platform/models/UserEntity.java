@@ -4,12 +4,12 @@ import lombok.*;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
+import java.util.Set;
+
 @Data
 @Document(collection = "users")
 @Getter
 @AllArgsConstructor
-
-@NoArgsConstructor
 @Setter
 public class UserEntity {
     @Id
@@ -19,12 +19,29 @@ public class UserEntity {
     private String email;
     @NonNull
     private String password;
+    @NonNull
+    private String username;
     @Getter
-    private String role = "user";
+    private Set<RoleType> role;
+
+    public UserEntity(){
+
+    }
 
     public UserEntity(String email, String password) {
         this.email = email;
         this.password = password;
+    }
+    public UserEntity(String email, String password, String username) {
+        this.email = email;
+        this.password = password;
+        this.username = username;
+    }
+    public UserEntity(String email, String password, String username, Set<RoleType> role) {
+        this.email = email;
+        this.password = password;
+        this.username = username;
+        this.role = role;
     }
 
     public @NonNull String getEmail() {
@@ -43,15 +60,31 @@ public class UserEntity {
         this.password = password;
     }
 
-    public void setRole(String role) {
-        this.role = role;
-    }
+
 
     public String getId() {
         return id;
     }
 
+    public Set<RoleType> getRole() {
+        return role;
+    }
+
+    public void setRole(Set<RoleType> role) {
+        this.role = role;
+    }
+
+    public @NonNull String getUsername() {
+        return username;
+    }
+
+    public void setUsername(@NonNull String username) {
+        this.username = username;
+    }
+
     public void setId(String id) {
         this.id = id;
     }
+
+
 }
