@@ -5,12 +5,16 @@ import com.serverless.tenant_saas_platform.models.Tenant;
 import com.serverless.tenant_saas_platform.repo.LandlordRepository;
 import com.serverless.tenant_saas_platform.repo.TenantRepository;
 import com.serverless.tenant_saas_platform.repo.UserRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.util.Set;
 
+
 @Service
 public class TenantLandlordService {
+    private static final Logger logger = LoggerFactory.getLogger(TenantLandlordService.class);
     private final UserRepository userRepository;
     private final LandlordRepository landlordRepository;
     private final TenantRepository tenantRepository;
@@ -39,7 +43,9 @@ public class TenantLandlordService {
     }
 
     public String getLandlordByTenantId(String tenantId) {
+        logger.info("Fetching tenant with ID: {}", tenantId);
         Tenant tenant = tenantRepository.findById(tenantId).orElseThrow(() -> new RuntimeException("Tenant not found"));
-        return tenant.getLandlordId();
+        logger.info("Found tenant with ID: {}, landlordId: {}", tenant.getId(), tenant.getLandlordId());
+        return tenant.getLandlordId() != null ? tenant.getLandlordId() : "No landlord assigned";
     }
 }

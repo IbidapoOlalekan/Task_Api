@@ -41,7 +41,12 @@ public class TenantLandlordController {
     @GetMapping("/tenants/{tenantId}/landlord")
     public ResponseEntity<String> getLandlordByTenantId(
             @PathVariable String tenantId){
-        String landlordId = tenantLandlordService.getLandlordByTenantId(tenantId);
-        return ResponseEntity.ok(landlordId);
+        try {
+            String landlordId = tenantLandlordService.getLandlordByTenantId(tenantId);
+            return ResponseEntity.ok(landlordId);
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+        }
+
     }
 }
