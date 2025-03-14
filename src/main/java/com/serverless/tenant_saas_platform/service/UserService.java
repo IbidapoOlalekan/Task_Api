@@ -18,6 +18,7 @@ import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.regex.Pattern;
 
 @Service
 public class UserService implements UserDetailsService {
@@ -28,6 +29,11 @@ public class UserService implements UserDetailsService {
     private final RoleRepository roleRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtTokenProvider jwtTokenProvider;
+
+    private static final String PASSWORD_PATTERN =
+            "^(?=.*[A-Z])(?=.*[a-z])(?=.*\\d)(?=.*[!@#$%^&*])[A-Za-z\\d!@#$%^&*]{8,}$";
+
+    private static final Pattern pattern = Pattern.compile(PASSWORD_PATTERN);
 
     @Autowired
     public UserService(UserRepository userRepository, LandlordRepository landlordRepository, RoleRepository roleRepository, PasswordEncoder passwordEncoder, JwtTokenProvider tokenProvider) {
@@ -48,12 +54,21 @@ public class UserService implements UserDetailsService {
     }
 
     public UserEntity registerUser(String email, String username, String password, RoleType roleType) {
-        if(userRepository.existsByEmail(email)) {
+        //convert email to lowercase
+        String normalizedEmail = email.toLowerCase();
+
+        // check if email exists already
+        if(userRepository.existsByEmail(normalizedEmail)) {
             throw new RuntimeException("Username Already Exists!!!");
         }
 
         Role role = roleRepository.findByName(roleType).orElseThrow(() -> new RuntimeException("Role not found!"));
 
+        if(!pattern.matcher(password).matches()){
+            throw new RuntimeException("Password must be at least 8 characters long, " +
+                    "contain at least one uppercase letter, one lowercase letter, " +
+                    "one digit and one special character (!@#$%^&*)");
+        }
         String hashedPassword = passwordEncoder.encode(password);
         UserEntity user;
         if(roleType == RoleType.LANDLORD) {
@@ -68,7 +83,7 @@ public class UserService implements UserDetailsService {
         } else{
             user = new UserEntity();
         }
-        user.setEmail(email);
+        user.setEmail(normalizedEmail);
         user.setUsername(username);
         user.setPassword(hashedPassword);
         user.setRole(Set.of(roleType));
@@ -76,12 +91,12 @@ public class UserService implements UserDetailsService {
     }
 
     public String authenticateUser(String email, String password) {
-        UserEntity user = userRepository.findByEmail(email);
+        UserEntity user = userRepository.findByEmail(email.toLowerCase());
         if(user == null || !passwordEncoder.matches(password,user.getPassword())) {
             return null;
         }
 
-        return jwtTokenProvider.createToken(email);
+        return jwtTokenProvider.createToken(email, user.getRole());
     }
 
 }

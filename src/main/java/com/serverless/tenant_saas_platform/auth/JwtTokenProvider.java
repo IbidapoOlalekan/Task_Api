@@ -1,14 +1,14 @@
 package com.serverless.tenant_saas_platform.auth;
 
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.Jwt;
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
+import com.serverless.tenant_saas_platform.models.Role;
+import com.serverless.tenant_saas_platform.models.RoleType;
+import io.jsonwebtoken.*;
 import org.springframework.stereotype.Component;
 
 import javax.crypto.KeyGenerator;
 import javax.crypto.SecretKey;
-import java.util.Date;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Component
 public class JwtTokenProvider {
@@ -28,8 +28,12 @@ public class JwtTokenProvider {
     }
 
     // Generate a JWT token for the user
-    public String createToken(String username){
+    public String createToken(String username, Set<RoleType> roles){
         Claims claims = Jwts.claims().setSubject(username);
+        claims.put("roles", roles.stream()
+                .map(Enum::name)
+                .collect(Collectors.toSet()));
+
         Date now = new Date();
         Date validity = new Date(now.getTime() + validityInMilliseconds);
 
@@ -50,7 +54,7 @@ public class JwtTokenProvider {
                     .parseClaimsJws(token);
             return true;
         }
-        catch (Exception e){
+        catch (JwtException | IllegalArgumentException e){
             return false;
         }
     }
@@ -62,5 +66,23 @@ public class JwtTokenProvider {
                 .parseClaimsJws(token)
                 .getBody();
         return claims.getSubject();
+    }
+
+    public Set<String> extractRoles(String token){
+        Claims claims = Jwts.parserBuilder()
+                .setSigningKey(secretKey)
+                .build()
+                .parseClaimsJws(token).getBody();
+        Object rolesClaim = claims.get("roles");
+        if(rolesClaim instanceof Collection<?>){
+            //Convert Collection<?> to Set<String> safely
+            Collection<?> rolesCollection = (Collection<?>) rolesClaim;
+            return rolesCollection.stream()
+                    .filter(Objects::nonNull)
+                    .map(Object::toString)
+                    .collect(Collectors.toSet());
+        }
+
+        return Collections.emptySet();
     }
 }

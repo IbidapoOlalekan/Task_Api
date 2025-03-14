@@ -4,6 +4,7 @@ import com.serverless.tenant_saas_platform.auth.JwtAuthenticationFilter;
 import org.springframework.beans.factory.annotation.Configurable;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
@@ -51,7 +52,17 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/auth/**").permitAll() //Allow login/register
+                        //Public endpoints
+                        .requestMatchers("/api/auth/**").permitAll()//Allow login/register
+                        .requestMatchers(HttpMethod.POST, "/api/test/reset").permitAll() //Allow reset endpoint
+                        //Landlord-only endpoints
+                        .requestMatchers(HttpMethod.POST, "/api/tenant-landlord/assign").hasRole("LANDLORD") // Assign tenants
+                        .requestMatchers(HttpMethod.GET, "/api/tenant-landlord/landlord/*").hasRole("LANDLORD") //View Tenants
+                        .requestMatchers(HttpMethod.GET,"/api/tenant-landlord/landlord/{landlordId}/tenants").hasRole("LANDLORD")
+                        //Tenant-Only Endpoints
+                        .requestMatchers(HttpMethod.GET,"/api/tenant-landlord/tenants/*").hasRole("TENANT") //vIEW Landlord
+                        //Tenant and Landlord endpoints
+                        .requestMatchers(HttpMethod.GET, "/api/rent/history").hasAnyRole("TENANT", "LANDLORD")
                         .anyRequest().authenticated()                  // Secure endpoints
                 )
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class); //Add JWR Filter
