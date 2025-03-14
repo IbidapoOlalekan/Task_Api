@@ -59,8 +59,13 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/api/tenant-landlord/assign").hasRole("LANDLORD") // Assign tenants
                         .requestMatchers(HttpMethod.GET, "/api/tenant-landlord/landlord/*").hasRole("LANDLORD") //View Tenants
                         .requestMatchers(HttpMethod.GET,"/api/tenant-landlord/landlord/{landlordId}/tenants").hasRole("LANDLORD")
+                        .requestMatchers(HttpMethod.POST, "/api/properties").hasRole("LANDLORD")
+                        .requestMatchers(HttpMethod.PUT,"/api/properties/*").hasRole("LANDLORD")
+                        .requestMatchers(HttpMethod.DELETE,"/api/properties/*").hasRole("LANDLORD")
+                        .requestMatchers(HttpMethod.GET,"/api/properties/*").hasRole("LANDLORD")
                         //Tenant-Only Endpoints
                         .requestMatchers(HttpMethod.GET,"/api/tenant-landlord/tenants/*").hasRole("TENANT") //vIEW Landlord
+                        .requestMatchers(HttpMethod.GET,"/api/properties/*").hasRole("TENANT")
                         //Tenant and Landlord endpoints
                         .requestMatchers(HttpMethod.GET, "/api/rent/history").hasAnyRole("TENANT", "LANDLORD")
                         .anyRequest().authenticated()                  // Secure endpoints
